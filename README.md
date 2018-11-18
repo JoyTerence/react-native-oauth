@@ -516,6 +516,20 @@ manager
   });
 ```
 
+for GitHub:
+
+```javascript
+manager
+  .makeRequest('github', "https://api.github.com/graphql", {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json; charset=utf-8' },
+      params: { "query": "{ \"query\": \"query { viewer { login }}\" }" }
+    })
+    .then(resp => {
+      console.log('Data ->', resp.data);
+    });
+```
+
 ## Getting authorized accounts
 
 Since OAuthManager handles storing user accounts, we can query it to see which accounts have already been authorized or not using `savedAccounts()`:
