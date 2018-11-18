@@ -219,7 +219,12 @@ class OAuthManagerModule extends ReactContextBaseJavaModule {
         
         ReadableMap requestParams = null;
         if (params != null && params.hasKey("params")) {
-          requestParams = params.getMap("params");
+          if (providerName.equals("github")) {
+            requestParams = params;
+          }
+          else {
+            requestParams = params.getMap("params");
+          }
         }
         OAuthRequest request = oauthRequestWithParams(providerName, cfg, authVersion, httpVerb, url, requestParams);
 
