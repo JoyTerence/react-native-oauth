@@ -96,7 +96,7 @@ public class OAuthManagerProviders {
     OAuthConfig config = service.getConfig();
     OAuthRequest request = new OAuthRequest(httpVerb, url.toString(), config);
 
-    request = OAuthManagerProviders.addParametersToRequest(request, token, params);
+    request = OAuthManagerProviders.addParametersToRequest(providerName, request, token, params);
     // Nothing special for Twitter
     return request;
   }
@@ -116,7 +116,7 @@ public class OAuthManagerProviders {
     OAuthRequest request = new OAuthRequest(httpVerb, url.toString(), config);
     String token = oa2token.getAccessToken();
 
-    request = OAuthManagerProviders.addParametersToRequest(request, token, params);
+    request = OAuthManagerProviders.addParametersToRequest(providerName, request, token, params);
 
     //
     Log.d(TAG, "Making request for " + providerName + " to add token " + token);
@@ -130,6 +130,7 @@ public class OAuthManagerProviders {
 
   // Helper to add parameters to the request
   static private OAuthRequest addParametersToRequest(
+    final String providerName,
     OAuthRequest request,
     final String access_token,
     @Nullable final ReadableMap params
@@ -146,7 +147,14 @@ public class OAuthManagerProviders {
             if (val.equals("access_token")) {
               val = access_token;
             }
-            request.addParameter(key, val);
+    
+            if (providerName.equals("github")) {
+              request.setPayload(val);
+            }
+            else {
+              request.addParameter(key, val);
+            }
+            
             break;
           default:
             throw new IllegalArgumentException("Could not read object with key: " + key);
