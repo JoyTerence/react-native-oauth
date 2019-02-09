@@ -116,8 +116,12 @@ public class OAuthManagerProviders {
     OAuthRequest request = new OAuthRequest(httpVerb, url.toString(), config);
     String token = oa2token.getAccessToken();
 
-    request = OAuthManagerProviders.addParametersToRequest(providerName, request, token, params);
-
+    if (providerName.equals("github")) {
+      request = OAuthManagerProviders.addParametersToRequestToGithub(providerName, request, token, params);
+    }
+    else {
+      request = OAuthManagerProviders.addParametersToRequest(providerName, request, token, params);
+    }
     //
     Log.d(TAG, "Making request for " + providerName + " to add token " + token);
     // Need a way to standardize this, but for now
@@ -129,6 +133,35 @@ public class OAuthManagerProviders {
   }
 
   // Helper to add parameters to the request
+  static private OAuthRequest addParametersToRequestToGithub(
+    final String providerName,
+    OAuthRequest request,
+    final String access_token,
+    @Nullable final ReadableMap params
+  ) {
+    ReadableMap requestParams;
+    if (params != null && params.hasKey("params")) {
+      requestParams = params.getMap("params");
+      ReadableMapKeySetIterator iterator = requestParams.keySetIterator();
+      while (iterator.hasNextKey()) {
+        String key = iterator.nextKey();
+        ReadableType readableType = requestParams.getType(key);
+        switch(readableType) {
+          case String:
+            String val = requestParams.getString(key);
+            if (val.equals("access_token"))
+              val = access_token;
+            Log.d("ReactNative", "val: " + val);
+            request.setPayload(val);
+            break;
+          default:
+            throw new IllegalArgumentException("Could not read object with key: " + key);
+        }
+      }
+    }
+    return request;
+  }
+
   static private OAuthRequest addParametersToRequest(
     final String providerName,
     OAuthRequest request,
@@ -144,17 +177,9 @@ public class OAuthManagerProviders {
           case String:
             String val = params.getString(key);
             // String escapedVal = Uri.encode(val);
-            if (val.equals("access_token")) {
+            if (val.equals("access_token"))
               val = access_token;
-            }
-    
-            if (providerName.equals("github")) {
-              request.setPayload(val);
-            }
-            else {
-              request.addParameter(key, val);
-            }
-            
+            request.addParameter(key, val);
             break;
           default:
             throw new IllegalArgumentException("Could not read object with key: " + key);
